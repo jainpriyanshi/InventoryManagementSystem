@@ -1,0 +1,48 @@
+Student Academic And Carrer Society
+4
+Carrer Planning Club
+Communication Club
+Entrepreneurship Club
+Personality Development Cell
+Student Campus Life Society
+3
+Dining Services Club
+Informal Events Club
+Social Service Club
+Student Cultural And Literary Society
+8
+Book Club
+Dance Club
+Drama Club
+Film Club
+Literature Club
+Music Club
+Newsletter Club
+Quiz Club
+Student Design And Arts Society
+4
+Designing  Club
+Fine Arts Club
+Frame-X(Film Making Club)
+Photography Club
+Science And Technology Society
+7
+Aeromodelling Club
+Astronomy Club
+Automobile Club
+Electronics Club
+Programming And Web Development Club
+Robotics Club
+Science Club
+Sports and Games Society
+10
+Atheletics
+Badminton
+Basketball
+Chess
+Cricket
+Football
+Lawn Tennis
+Table Tennis
+Volleyball
+Weightlifting 
