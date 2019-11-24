@@ -1,5 +1,5 @@
 Carrer Planning Club
-0
+0 
 Communication Club
 0
 Entrepreneurship Club
@@ -126,5 +126,6 @@ Weightlifting
 52 Dumbbells 1
 53 Dumbbells 1
 54 Dumbbells 1 
+
 
 

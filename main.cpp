@@ -11,44 +11,13 @@ using namespace std;
 int level = 0, mode = 0;
 #define STUDENT 1
 #define CAPTAIN 2
+bool login=false;
+string loginRollNo;
+void loginStudent();
+void registerStudent();
 
 #define f(i, n, m) for (int i = n; i < m; i++)
 
-class Society
-{
-private:
-	int budgetAlloted;
-	int budgetUsed;
-
-public:
-	string societyName;
-	string secretaryName;
-	vector<string> clubs;
-	string facultyAdvisor;
-	bool approveRequest();
-	void input(string name)
-	{
-		ifstream fin("clublist.txt");
-		f(i, 0, 6)
-		{
-			getline(fin, societyName);
-			int n;
-			fin >> n;
-			string s;
-			getline(fin, s);
-			clubs.resize(n);
-			f(j, 0, n) getline(fin, clubs[j]);
-			if (societyName == name)
-				break;
-		}
-		fin.close();
-	}
-	void display()
-	{
-		cout << societyName << endl;
-		f(i, 0, clubs.size()) cout << clubs[i] << endl;
-	}
-} s;
 
 class Student
 {
@@ -81,14 +50,143 @@ public:
 	vector<string> itemsIssued;
 	void updateItemsIssued();
 };
+
+void login_display()
+{
+	int ch;
+	cout<<"\n\n\n\n\n\n\t\t\t\t\t******************************\n";
+	cout<<"\t\t\t\t\t 1.  Login\n";
+	cout<<"\t\t\t\t\t 2.  Register\n";
+	cin>>ch;
+	switch (ch){
+		case 1: loginStudent();
+		break; 
+		case 2:registerStudent();
+		break;
+		default:login_display();
+	}
+
+}
+void Logout()
+{
+	login=false;
+}
+void loginStudent()
+{
+	string rollno,password,word;
+	ifstream fin ("students.txt");
+	cout<<"\n\n\n\n\n\n\t\t\t\t\t\t Enter Your Roll Number\t: ";
+	cin>>rollno;
+	cout<<"\n";
+	cout<<"\t\t\t\t\t\t Enter Your Password\t: ";
+	cin>>password;
+	cout<<"\n";
+	while(fin>>word)
+	{
+		string pass;
+		fin>>pass;
+		if(word==rollno && pass==password)
+		{cout<<"\t\t\t\t\t\t\t ** Login Successfully**    \n";
+		loginRollNo=rollno;
+		login=true;
+		return ;
+		}
+		else
+		{
+			cout<<"\n\n\n\t\t\t\t*Incorrect Rollno or password*\n ";
+			loginStudent();
+			return ;
+		}
+	}
+	login_display();
+}
+void registerStudent()
+{
+	Student newstudent;
+	string confirmPassword;
+	cout<<"\n\n\n\n\t\t\t\t\t\t Enter Your Name\t: ";
+	cin>>newstudent.name;
+	cout<<"\n";
+	cout<<"\t\t\t\t\t\t Enter You  Ldap credentials\t: ";
+	cin>>newstudent.ldap;
+	cout<<"\n";
+	cout<<"\t\t\t\t\t\t Enter Your Roll Number\t: ";
+	cin>>newstudent.rollNo;
+	cout<<"\n";
+	cout<<"\t\t\t\t\t\t Enter Your Password\t: ";
+	cin>>newstudent.password;
+	cout<<"\n";
+	cout<<"\t\t\t\t\t\t Confirm Your Password\t: ";
+	cin>>confirmPassword;
+	cout<<"\n";
+	if(newstudent.password==confirmPassword)
+	{
+		ofstream fout("students.txt",ios::app);
+		fout<<newstudent.rollNo<<" "<<newstudent.password<<"\n";
+		cout<<"\t\t\t\t\t** Congratulations Student Registered Succesfully **\n";
+		loginRollNo=newstudent.rollNo;
+		login=true;
+		
+	}
+	else
+	{
+		cout<<"\t\t\t\t\t\t\t Password don't matched\n";
+		registerStudent();
+	}
+}
+
+
+
+class Society
+{
+private:
+	int budgetAlloted;
+	int budgetUsed;
+
+public:
+	string societyName;
+	string secretaryName;
+	vector<string> clubs;
+	string facultyAdvisor;
+	bool approveRequest();
+	void input(string name)
+	{
+		ifstream fin("clublist.txt");
+		f(i, 0, 6)
+		{
+			getline(fin, societyName);
+			int n;
+			fin >> n;
+			string s;
+			getline(fin, s);
+			clubs.resize(n);
+			f(j, 0, n) getline(fin, clubs[j]);
+			if (societyName == name)
+				break;
+		}
+		fin.close();
+	}
+	void display()
+	{
+		cout << "\n\n\n\n\n\t\t\t\t\t\t**"<<societyName <<"**"<< endl;
+		cout<<"\t\t\t\t\t******************************************\n";
+		f(i, 0, clubs.size()) cout <<"\t\t\t\t\t\t\t"<< clubs[i] << endl;
+		cout<<"\t\t\t\t\t******************************************";
+	}
+} s;
+
 class Item
 {
 public:
 	int itemId;
 	string Name;
 	bool status;
-	void updateStatus();
+	void updateStatus()
+	{
+        
+	}
 	void displayDetails();
+
 };
 class Club
 {
@@ -120,12 +218,10 @@ public:
 		{
 			
 			getline(fin1, clubName);
-			//cout<<clubName<<"\n";
 			int n;
 			fin1 >> n;
 			string s;
-			getline(fin, s);
-			//cout<<n<<"\n";
+			getline(fin1, s);
 			itemsAvailable.resize(n);
 			f(j,0,n)
 			{
@@ -138,6 +234,7 @@ public:
 				itemsAvailable[j].Name=name;
 				int status;
 				fin1>>status;
+				getline(fin1, s);
 				itemsAvailable[j].status=status;
 			}
 			if (clubName == name)
@@ -148,10 +245,30 @@ public:
 	}
 	void display()
 	{
-		cout << clubName << endl;
-		f(i, 0, members.size()) cout << members[i] << endl;
+		cout<<"\n\n\n\n\n\n";
+		
+		cout <<"\t\t\t\t\t\t**"<< clubName <<"**"<< endl;
+
+		f(i, 0, members.size()) cout <<"\t\t\t\t\t\t"<< members[i] << endl;
+		cout<<"\n\n\t\t\t\t\t\tItems Available\n";
+		cout<<"\t\t\t\t\t*****************************\n";
+		cout<<"\t\t\t\t\tItemId\tItem Name\tstatus\n";
 		f(i, 0, itemsAvailable.size()) 
-		cout << itemsAvailable[i].itemId <<" "<<itemsAvailable[i].Name<<" "<<itemsAvailable[i].status<< endl;
+		cout <<"\t\t\t\t\t" <<itemsAvailable[i].itemId <<"\t"<<itemsAvailable[i].Name<<"\t"<<itemsAvailable[i].status<< endl;
+		cout<<"\t\t\t\t\t*****************************\n";
+		int Id;
+		cout<<"\n\n\\t\t\t\tEnter Item Id To Issue \n";
+		cin>>Id;
+		if(login)
+		{
+			;
+		}
+		else
+		{
+	        login_display();
+		}
+		
+
 	}
 	void newmember(string roll)
 	{
@@ -200,7 +317,10 @@ int loadSociety()
 	ifstream fin("societylist.txt");
 	vector<string> societies(6);
 	f(i, 0, 6) getline(fin, societies[i]);
-	f(i, 0, 6) cout << i + 1 << "." << societies[i] << endl;
+	cout<<"\n\n\n\n\n\t\t\t\t\t\t\t***Societies***\n";
+	cout<<"\n\n\n\t\t\t\t\t****************************************************\n";
+	f(i, 0, 6) cout << "\t\t\t\t\t\t  "<<i + 1 << "." << societies[i] << endl;
+	cout<<"\n\n\t\t\t\t\t****************************************************\n";
 	int num;
 	cin >> num;
 	if (num < 1 || num > 6)
@@ -226,7 +346,7 @@ void display()
 	switch (level)
 	{
 	case 0:
-		cout << "1. Student\n2. Captain\n3: Exit\n";
+		cout << "\n\n\n\n\n\n\t\t\t\t\t***************************\n\t\t\t\t\t\t1. Student\n\t\t\t\t\t\t2. Captain\n\t\t\t\t\t\t3: Exit\n\t\t\t\t\t***************************\n";
 		cin >> mode;
 		if (mode == 1 || mode == 2)
 		{
