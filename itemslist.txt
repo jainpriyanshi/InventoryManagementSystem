@@ -1,6 +1,5 @@
 Carrer Planning Club
-1
-900 abc 1
+0
 Communication Club
 0
 Entrepreneurship Club

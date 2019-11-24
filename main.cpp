@@ -120,24 +120,25 @@ public:
 		{
 			
 			getline(fin1, clubName);
-			cout<<clubName<<"\n";
+			//cout<<clubName<<"\n";
 			int n;
 			fin1 >> n;
 			string s;
 			getline(fin, s);
-			cout<<n<<"\n";
+			//cout<<n<<"\n";
 			itemsAvailable.resize(n);
-			f(i,0,n)
+			f(j,0,n)
 			{
+				
 				int id;
 				fin1>>id;
-				itemsAvailable[i].itemId=id;
+				itemsAvailable[j].itemId=id;
 				string tmpname;
 				fin1>>tmpname;
-				itemsAvailable[i].Name=name;
+				itemsAvailable[j].Name=name;
 				int status;
 				fin1>>status;
-				itemsAvailable[i].status=status;
+				itemsAvailable[j].status=status;
 			}
 			if (clubName == name)
 				break;
