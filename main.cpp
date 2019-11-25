@@ -3,21 +3,22 @@
 #include <vector>
 #include <string>
 #include <stdio.h>
+
+#define clear() printf("\033[H\033[J")
+
 #include <stdlib.h>
-#include<ios>      
-#include<limits>
+#include <ios>
+#include <limits>
+
+#include <termios.h>
+#include <unistd.h>
+#include <cstdlib>
 
 using namespace std;
-int level = 0, mode = 0;
+int level = 0, mode = 0, valid_action_available = 1;
 #define STUDENT 1
 #define CAPTAIN 2
-bool login=false;
-string loginRollNo;
-void loginStudent();
-void registerStudent();
-
 #define f(i, n, m) for (int i = n; i < m; i++)
-
 
 class Student
 {
@@ -26,10 +27,51 @@ private:
 
 public:
 	string name, ldap, rollNo;
-	friend void registerStudent();
-	friend void loginStudent();
-	friend void Logout();
-};
+	int input(string LDAP, string PASS)
+	{
+		ifstream fin("students.txt");
+		int n;
+		fin >> n;
+		string s;
+		getline(fin, s);
+		f(i, 0, n)
+		{
+			getline(fin, rollNo);
+			getline(fin, name);
+			getline(fin, ldap);
+			getline(fin, password);
+			if (ldap == LDAP && password == PASS)
+				return 0;
+		}
+		fin.close();
+		return 1;
+	}
+	int load(string roll)
+	{
+		ifstream fin("students.txt");
+		int n;
+		fin >> n;
+		string s;
+		getline(fin, s);
+		f(i, 0, n)
+		{
+			getline(fin, rollNo);
+			getline(fin, name);
+			getline(fin, ldap);
+			getline(fin, s);
+			if (rollNo == roll)
+				return 0;
+		}
+		fin.close();
+		return 1;
+	}
+	void display()
+	{
+		cout << name << endl
+			 << rollNo << endl
+			 << ldap << endl;
+	}
+} stu;
 class Captain : public Student
 {
 	string password;
@@ -51,92 +93,6 @@ public:
 	void updateItemsIssued();
 };
 
-void login_display()
-{
-	int ch;
-	cout<<"\n\n\n\n\n\n\t\t\t\t\t******************************\n";
-	cout<<"\t\t\t\t\t 1.  Login\n";
-	cout<<"\t\t\t\t\t 2.  Register\n";
-	cin>>ch;
-	switch (ch){
-		case 1: loginStudent();
-		break; 
-		case 2:registerStudent();
-		break;
-		default:login_display();
-	}
-
-}
-void Logout()
-{
-	login=false;
-}
-void loginStudent()
-{
-	string rollno,password,word;
-	ifstream fin ("students.txt");
-	cout<<"\n\n\n\n\n\n\t\t\t\t\t\t Enter Your Roll Number\t: ";
-	cin>>rollno;
-	cout<<"\n";
-	cout<<"\t\t\t\t\t\t Enter Your Password\t: ";
-	cin>>password;
-	cout<<"\n";
-	while(fin>>word)
-	{
-		string pass;
-		fin>>pass;
-		if(word==rollno && pass==password)
-		{cout<<"\t\t\t\t\t\t\t ** Login Successfully**    \n";
-		loginRollNo=rollno;
-		login=true;
-		return ;
-		}
-		else
-		{
-			cout<<"\n\n\n\t\t\t\t*Incorrect Rollno or password*\n ";
-			loginStudent();
-			return ;
-		}
-	}
-	login_display();
-}
-void registerStudent()
-{
-	Student newstudent;
-	string confirmPassword;
-	cout<<"\n\n\n\n\t\t\t\t\t\t Enter Your Name\t: ";
-	cin>>newstudent.name;
-	cout<<"\n";
-	cout<<"\t\t\t\t\t\t Enter You  Ldap credentials\t: ";
-	cin>>newstudent.ldap;
-	cout<<"\n";
-	cout<<"\t\t\t\t\t\t Enter Your Roll Number\t: ";
-	cin>>newstudent.rollNo;
-	cout<<"\n";
-	cout<<"\t\t\t\t\t\t Enter Your Password\t: ";
-	cin>>newstudent.password;
-	cout<<"\n";
-	cout<<"\t\t\t\t\t\t Confirm Your Password\t: ";
-	cin>>confirmPassword;
-	cout<<"\n";
-	if(newstudent.password==confirmPassword)
-	{
-		ofstream fout("students.txt",ios::app);
-		fout<<newstudent.rollNo<<" "<<newstudent.password<<"\n";
-		cout<<"\t\t\t\t\t** Congratulations Student Registered Succesfully **\n";
-		loginRollNo=newstudent.rollNo;
-		login=true;
-		
-	}
-	else
-	{
-		cout<<"\t\t\t\t\t\t\t Password don't matched\n";
-		registerStudent();
-	}
-}
-
-
-
 class Society
 {
 private:
@@ -151,8 +107,12 @@ public:
 	bool approveRequest();
 	void input(string name)
 	{
-		ifstream fin("clublist.txt");
-		f(i, 0, 6)
+		ifstream fin("society_clubs.txt");
+		int total;
+		fin >> total;
+		string s;
+		getline(fin, s);
+		f(i, 0, total)
 		{
 			getline(fin, societyName);
 			int n;
@@ -168,26 +128,62 @@ public:
 	}
 	void display()
 	{
-		cout << "\n\n\n\n\n\t\t\t\t\t\t**"<<societyName <<"**"<< endl;
-		cout<<"\t\t\t\t\t******************************************\n";
-		f(i, 0, clubs.size()) cout <<"\t\t\t\t\t\t\t"<< clubs[i] << endl;
-		cout<<"\t\t\t\t\t******************************************";
+		cout << societyName << endl;
+		f(i, 0, clubs.size()) cout << i + 1 << ". " << clubs[i] << endl;
 	}
 } s;
 
 class Item
 {
 public:
-	int itemId;
-	string Name;
-	bool status;
-	void updateStatus()
+	int itemID;
+	string name;
+	string status;
+	Student issuedBy;
+	int input(int id)
 	{
-        
+		ifstream fin("item_details.txt");
+		int n;
+		fin >> n;
+		string s;
+		getline(fin, s);
+		f(i, 0, n)
+		{
+			getline(fin, name);
+			fin >> itemID;
+			getline(fin, status);
+			getline(fin, status);
+			if (status == "ISSUED")
+			{
+				string issuedByRoll;
+				getline(fin, issuedByRoll);
+				issuedBy.load(issuedByRoll);
+			}
+			if (id == itemID)
+				return 0;
+		}
+		fin.close();
+		return 1;
 	}
-	void displayDetails();
+	void display()
+	{
+		cout << itemID << " " << name << endl;
+		if (status == "ISSUED")
+		{
+			cout << "ISSUED BY:\n";
+			issuedBy.display();
+			if (stu.rollNo == issuedBy.rollNo)
+				cout << "RETURN? [y/n] ";
+			else
+				valid_action_available = 0;
+		}
+		else
+		{
+			cout << "REQUEST ISSUE? [y/n] ";
+		}
+	}
+} it;
 
-};
 class Club
 {
 public:
@@ -198,8 +194,12 @@ public:
 	void requestToBuyNewItems();
 	void input(string name)
 	{
-		ifstream fin("clubmembers.txt");
-		f(i, 0, 36)
+		ifstream fin("club_members.txt");
+		int total;
+		fin >> total;
+		string dump;
+		getline(fin, dump);
+		f(i, 0, total)
 		{
 			getline(fin, clubName);
 			getline(fin, captain);
@@ -213,68 +213,45 @@ public:
 				break;
 		}
 		fin.close();
-		ifstream fin1("itemslist.txt");
-		f(i, 0, 36)
+		fin.open("club_items.txt");
+		fin >> total;
+		getline(fin, dump);
+		f(i, 0, total)
 		{
-			
-			getline(fin1, clubName);
+			getline(fin, clubName);
 			int n;
-			fin1 >> n;
+			fin >> n;
 			string s;
-			getline(fin1, s);
+			getline(fin, s);
 			itemsAvailable.resize(n);
-			f(j,0,n)
+			f(j, 0, n)
 			{
-				
-				int id;
-				fin1>>id;
-				itemsAvailable[j].itemId=id;
-				string tmpname;
-				fin1>>tmpname;
-				itemsAvailable[j].Name=name;
-				int status;
-				fin1>>status;
-				getline(fin1, s);
-				itemsAvailable[j].status=status;
+				fin >> itemsAvailable[j].itemID;
+				getline(fin, itemsAvailable[j].name);
+				itemsAvailable[j].input(itemsAvailable[j].itemID);
 			}
 			if (clubName == name)
 				break;
 		}
-		fin1.close();
-		
+		fin.close();
 	}
 	void display()
 	{
-		cout<<"\n\n\n\n\n\n";
-		
-		cout <<"\t\t\t\t\t\t**"<< clubName <<"**"<< endl;
-
-		f(i, 0, members.size()) cout <<"\t\t\t\t\t\t"<< members[i] << endl;
-		cout<<"\n\n\t\t\t\t\t\tItems Available\n";
-		cout<<"\t\t\t\t\t*****************************\n";
-		cout<<"\t\t\t\t\tItemId\tItem Name\tstatus\n";
-		f(i, 0, itemsAvailable.size()) 
-		cout <<"\t\t\t\t\t" <<itemsAvailable[i].itemId <<"\t"<<itemsAvailable[i].Name<<"\t"<<itemsAvailable[i].status<< endl;
-		cout<<"\t\t\t\t\t*****************************\n";
-		int Id;
-		cout<<"\n\n\\t\t\t\tEnter Item Id To Issue \n";
-		cin>>Id;
-		if(login)
+		cout << clubName << endl;
+		f(i, 0, itemsAvailable.size())
 		{
-			;
+			cout << itemsAvailable[i].itemID << " " << itemsAvailable[i].name << " " << (itemsAvailable[i].status == "ISSUED" ? ":NOT AVAILABLE" : ":AVAILABLE") << endl;
 		}
-		else
-		{
-	        login_display();
-		}
-		
-
 	}
 	void newmember(string roll)
 	{
-		ifstream fin("clubmembers.txt");
-		ofstream fout("clubmembersnew.txt");
-		f(i, 0, 36)
+		ifstream fin("club_members.txt");
+		ofstream fout("club_membersnew.txt");
+		int total;
+		fin >> total;
+		string dump;
+		getline(fin, dump);
+		f(i, 0, total)
 		{
 			string name, cap;
 			getline(fin, name);
@@ -294,17 +271,16 @@ public:
 		}
 		fin.close();
 		fout.close();
-		rename("clubmembersnew.txt", "clubmembers.txt");
+		rename("club_membersnew.txt", "club_members.txt");
 	}
 } c;
-
 
 class Receipt
 {
 public:
 	static int receiptNo;
 	string studentRollNo;
-	int itemId;
+	int itemID;
 	string dateIssued;
 	string dueDate;
 	void createReceipt();
@@ -312,17 +288,38 @@ public:
 	void retrieveReceipt();
 };
 
+int loadStudent()
+{
+	string ldap, pass;
+	cout << "Enter LDAP:";
+	cin >> ldap;
+	getline(cin, pass);
+	pass = getpass("Enter Password:");
+	int exitStatus = stu.input(ldap, pass);
+	if (exitStatus)
+		return 1;
+	return 0;
+}
+
 int loadSociety()
 {
 	ifstream fin("societylist.txt");
-	vector<string> societies(6);
-	f(i, 0, 6) getline(fin, societies[i]);
-	cout<<"\n\n\n\n\n\t\t\t\t\t\t\t***Societies***\n";
-	cout<<"\n\n\n\t\t\t\t\t****************************************************\n";
-	f(i, 0, 6) cout << "\t\t\t\t\t\t  "<<i + 1 << "." << societies[i] << endl;
-	cout<<"\n\n\t\t\t\t\t****************************************************\n";
+	int total;
+	fin >> total;
+	string dump;
+	getline(fin, dump);
+	vector<string> societies(total);
+	f(i, 0, total) getline(fin, societies[i]);
+	f(i, 0, total) cout << i + 1 << ". " << societies[i] << endl;
+
 	int num;
+	cout << "Enter Index: (0 for back)\n";
 	cin >> num;
+	if (num == 0)
+	{
+		level -= 2;
+		return 0;
+	}
 	if (num < 1 || num > 6)
 		return 1;
 	s.input(societies[num - 1]);
@@ -333,11 +330,61 @@ int loadSociety()
 int loadClub()
 {
 	int num;
+	cout << "Enter Index: (0 for back)\n";
 	cin >> num;
+	if (num == 0)
+	{
+		level -= 2;
+		return 0;
+	}
 	if (num < 1 || num > s.clubs.size())
 		return 1;
 	c.input(s.clubs[num - 1]);
 	return 0;
+}
+
+int loadItem()
+{
+	int num;
+	cout << "Enter Index: (0 for back)\n";
+	cin >> num;
+	if (num == 0)
+	{
+		level -= 2;
+		return 0;
+	}
+	int flag = 0;
+	f(i, 0, c.itemsAvailable.size())
+		flag |= (num == c.itemsAvailable[i].itemID);
+	if (!flag)
+		return 1;
+	int exitStatus = it.input(num);
+	return exitStatus;
+}
+
+int loadAction()
+{
+	if (valid_action_available == 0)
+	{
+		level -= 2;
+		return 0;
+	}
+	char num;
+	cin >> num;
+	if (num != 'y')
+	{
+		level -= 2;
+		return 0;
+	}
+	return 1;
+}
+
+void EXIT(int input)
+{
+	if (level)
+		level--;
+	else
+		exit(0);
 }
 
 void display()
@@ -346,47 +393,52 @@ void display()
 	switch (level)
 	{
 	case 0:
-		cout << "\n\n\n\n\n\n\t\t\t\t\t***************************\n\t\t\t\t\t\t1. Student\n\t\t\t\t\t\t2. Captain\n\t\t\t\t\t\t3: Exit\n\t\t\t\t\t***************************\n";
+		cout << "1. Student\n2. Captain\n3. Exit\n";
 		cin >> mode;
-		if (mode == 1 || mode == 2)
-		{
-			level++;
-			return;
-		}
-		if (mode == 3)
-			exit(0);
+		if (!(mode == 1 || mode == 2))
+			EXIT(0);
+		exitStatus = loadStudent();
+		if (exitStatus)
+			EXIT(0);
+		level++;
 		break;
 	case 1:
-		if (mode == STUDENT)
-		{
-			exitStatus = loadSociety();
-			if (exitStatus)
-				exit(0);
-			level++;
-			return;
-		}
-		else
-		{
-			exit(0);
-		}
+		exitStatus = loadSociety();
+		if (exitStatus)
+			EXIT(0);
+		level++;
+		return;
 		break;
 	case 2:
 		s.display();
 		exitStatus = loadClub();
 		if (exitStatus)
-			exit(0);
+			EXIT(0);
 		level++;
 		return;
 	case 3:
 		c.display();
+		exitStatus = loadItem();
+		if (exitStatus)
+			EXIT(0);
+		level++;
+		return;
+	case 4:
+		it.display();
+		exitStatus = loadAction();
+		if (exitStatus)
+			EXIT(0);
+		level++;
+		return;
 	default:
-		exit(0);
+		EXIT(0);
 	}
 }
 int main()
 {
 	while (1)
 	{
+		clear();
 		display();
 	}
 }

@@ -1,48 +1,115 @@
-Student Academic And Carrer Society
-4
+36
 Carrer Planning Club
+B18CSE026
+2
+B18CSE042
+B18CSE038
 Communication Club
+B18CSE026
+0
 Entrepreneurship Club
+B18CSE026
+0
 Personality Development Cell
-Student Campus Life Society
-3
+B18CSE026
+0
 Dining Services Club
+B18CSE026
+0
 Informal Events Club
+B18CSE026
+0
 Social Service Club
-Student Cultural And Literary Society
-8
+B18CSE026
+0
 Book Club
+B18CSE026
+0
 Dance Club
+B18CSE026
+0
 Drama Club
+B18CSE026
+2
+B18CSE042
+B18CSE038
 Film Club
+B18CSE026
+0
 Literature Club
+B18CSE026
+0
 Music Club
+B18CSE026
+0
 Newsletter Club
+B18CSE026
+0
 Quiz Club
-Student Design And Arts Society
-4
+B18CSE026
+0
 Designing  Club
+B18CSE026
+0
 Fine Arts Club
+B18CSE026
+0
 Frame-X(Film Making Club)
+B18CSE026
+0
 Photography Club
-Science And Technology Society
-7
+B18CSE026
+0
 Aeromodelling Club
+B18CSE026
+0
 Astronomy Club
+B18CSE026
+0
 Automobile Club
+B18CSE026
+0
 Electronics Club
+B18CSE026
+0
 Programming And Web Development Club
+B18CSE026
+0
 Robotics Club
+B18CSE026
+0
 Science Club
-Sports and Games Society
-10
+B18CSE026
+0
 Atheletics
+B18CSE026
+0
 Badminton
+B18CSE026
+2
+B18CSE042
+B18CSE038
 Basketball
+B18CSE026
+0
 Chess
+B18CSE026
+0
 Cricket
+B18CSE026
+0
 Football
+B18CSE026
+0
 Lawn Tennis
+B18CSE026
+0
 Table Tennis
+B18CSE026
+0
 Volleyball
-Weightlifting 
+B18CSE026
+0
+Weightlifting
+B18CSE026
+0
