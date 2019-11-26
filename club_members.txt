@@ -5,8 +5,9 @@ B18CSE026
 B18CSE042
 B18CSE038
 Communication Club
+B18CSE042
+1
 B18CSE026
-0
 Entrepreneurship Club
 B18CSE026
 0
