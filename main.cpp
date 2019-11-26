@@ -263,36 +263,6 @@ public:
 		}
 		cout << endl;
 	}
-	void newmember(string roll)
-	{
-		ifstream fin("club_members.txt");
-		ofstream fout("club_membersnew.txt");
-		int total;
-		fin >> total;
-		string dump;
-		getline(fin, dump);
-		f(i, 0, total)
-		{
-			string name, cap;
-			getline(fin, name);
-			getline(fin, cap);
-			int n;
-			fin >> n;
-			string s;
-			getline(fin, s);
-			vector<string> memb(n);
-			f(j, 0, n) getline(fin, memb[j]);
-			if (clubName == name)
-				memb.push_back(roll);
-			break;
-			fout << name << endl
-				 << cap << n + 1 << endl;
-			f(j, 0, n + 1) fout << memb[j] << endl;
-		}
-		fin.close();
-		fout.close();
-		rename("club_membersnew.txt", "club_members.txt");
-	}
 } c;
 
 ifstream transaction_fin;
@@ -327,6 +297,7 @@ public:
 		}
 		return 0;
 	}
+
 	void display()
 	{
 		cout << request << endl
@@ -358,6 +329,125 @@ public:
 		else
 			flag = c.clubName == clubName;
 		return flag;
+	}
+
+	void accept()
+	{
+		if (itemID)
+		{
+			if (request == "REQUEST_ITEM")
+			{
+				ifstream fin("item_details.txt");
+				ofstream fout("item_details_new.txt");
+				int n;
+				fin >> n;
+				fout << n << endl;
+				string s;
+				getline(fin, s);
+				Item item;
+				f(i, 0, n)
+				{
+					getline(fin, item.name);
+					fout << item.name << endl;
+					fin >> item.itemID;
+					fout << item.itemID << endl;
+					getline(fin, item.status);
+					getline(fin, item.status);
+					if (itemID == item.itemID)
+					{
+						fout << "ISSUED" << endl
+							 << studentRollNo << endl;
+					}
+					else
+					{
+						fout << item.status << endl;
+						if (item.status == "ISSUED")
+						{
+							string issuedByRoll;
+							getline(fin, issuedByRoll);
+							fout << issuedByRoll << endl;
+						}
+					}
+				}
+				fin.close();
+				fout.close();
+				rename("item_details_new.txt", "item_details.txt");
+				c.input(c.clubName);
+			}
+			else
+			{
+				ifstream fin("item_details.txt");
+				ofstream fout("item_details_new.txt");
+				int n;
+				fin >> n;
+				fout << n << endl;
+				string s;
+				getline(fin, s);
+				Item item;
+				f(i, 0, n)
+				{
+					getline(fin, item.name);
+					fout << item.name << endl;
+					fin >> item.itemID;
+					fout << item.itemID << endl;
+					getline(fin, item.status);
+					getline(fin, item.status);
+					string issuedByRoll;
+					if (item.status == "ISSUED")
+					{
+						getline(fin, issuedByRoll);
+					}
+					if (itemID == item.itemID)
+					{
+						fout << "NOT_ISSUED" << endl;
+					}
+					else
+					{
+						fout << item.status << endl;
+						if (item.status == "ISSUED")
+						{
+							fout << issuedByRoll << endl;
+						}
+					}
+				}
+				fin.close();
+				fout.close();
+				rename("item_details_new.txt", "item_details.txt");
+				c.input(c.clubName);
+			}
+		}
+		else
+		{
+			ifstream fin("club_members.txt");
+			ofstream fout("club_members_new.txt");
+			int total;
+			fin >> total;
+			fout << total << endl;
+			string dump;
+			getline(fin, dump);
+			f(i, 0, total)
+			{
+				string name, cap;
+				getline(fin, name);
+				getline(fin, cap);
+				int n;
+				fin >> n;
+				string s;
+				getline(fin, s);
+				vector<string> memb(n);
+				f(j, 0, n) getline(fin, memb[j]);
+				if (clubName == name)
+					memb.push_back(studentRollNo);
+				fout << name << endl
+					 << cap << endl
+					 << memb.size() << endl;
+				f(j, 0, memb.size()) fout << memb[j] << endl;
+			}
+			fin.close();
+			fout.close();
+			rename("club_members_new.txt", "club_members.txt");
+			c.input(c.clubName);
+		}
 	}
 };
 
@@ -403,6 +493,7 @@ label:
 	case '0':
 		break;
 	case '1':
+		t.accept();
 		confirm_ts.push_back(t.signature());
 		goto label;
 	case '2':
@@ -425,8 +516,6 @@ label:
 
 int loadStudent()
 {
-	stu.input("tawatia.1", "pass");
-	return 0;
 	string ldap, pass;
 	cout << "Enter LDAP:";
 	cin >> ldap;
@@ -448,7 +537,7 @@ int loadSociety()
 	vector<string> societies(total);
 	f(i, 0, total) getline(fin, societies[i]);
 
-	cout << "Student Gymkhana\n\n";
+	cout << "Student Gymkhana\n";
 	f(i, 0, total) cout << i + 1 << ". " << societies[i] << endl;
 	cout << endl;
 
@@ -555,7 +644,6 @@ int loadCaptainActions()
 {
 	int option;
 	string response;
-
 	if (c.captain != stu.rollNo)
 	{
 		cout << "You are not the captain of " << c.clubName << endl;

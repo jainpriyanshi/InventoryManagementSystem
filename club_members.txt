@@ -1,16 +1,18 @@
 36
 Carrer Planning Club
 B18CSE026
-2
+3
 B18CSE042
 B18CSE038
+B18CSE026
 Communication Club
-B18CSE042
+B18CSE026
 1
 B18CSE026
 Entrepreneurship Club
 B18CSE026
-0
+1
+B18CSE026
 Personality Development Cell
 B18CSE026
 0
