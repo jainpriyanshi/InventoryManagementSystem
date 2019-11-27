@@ -89,10 +89,12 @@ public:
 	}
 	void display()
 	{
-		cout << name << endl
-			 << rollNo << endl
-			 << ldap << endl;
+		display();
+		cout << setw(90)<< name << endl
+			 << setw(90)<< rollNo << endl
+			 << setw(90)<< ldap << endl;
 		cout << endl;
+		display();
 	}
 	void requestItem(int item)
 	{
@@ -211,16 +213,16 @@ public:
 	}
 	void display()
 	{
-		cout << itemID << " " << name << endl;
+		cout << setw(80)<<itemID << " " << name << endl;
 		if (status == "ISSUED")
 		{
 
-			cout << "ISSUED BY:\n";
+			cout <<setw(90)<< "ISSUED BY:\n";
 			issuedBy.display();
 		}
 		else
 		{
-			cout << status << endl;
+			cout << setw(90)<<status << endl;
 		}
 		cout << endl;
 	}
@@ -279,8 +281,8 @@ public:
 	}
 	void display()
 	{
-		cout << clubName << endl;
 		design();
+		cout << setw(90)<<clubName << endl;
 		f(i, 0, itemsAvailable.size())
 		{
 			cout <<setw(70)<< itemsAvailable[i].itemID << " " << itemsAvailable[i].name << " " << (itemsAvailable[i].status == "ISSUED" ? ":NOT AVAILABLE" : ":AVAILABLE") << endl;
@@ -325,7 +327,7 @@ public:
 
 	void display()
 	{
-		cout << request << endl
+		cout << setw(90)<<request << endl
 			 << endl;
 		student.display();
 		if (request == "REQUEST_ITEM_RETURN" || request == "REQUEST_ITEM")
@@ -333,7 +335,7 @@ public:
 			item.display();
 		}
 		cout << endl
-			 << signature() << endl
+			 << setw(90)<< signature() << endl
 			 << endl;
 	}
 
@@ -510,8 +512,10 @@ label:
 	}
 	clear();
 	t.display();
-	cout << "1. ACCEPT\n2. DECLINE\n3. NEXT REQUEST\n";
-	cout << "ENTER INDEX (0 FOR EXIT)\n";
+	design();
+	cout << setw(90)<<"1. ACCEPT\n"<<setw(90)<<"2. DECLINE\n"<<setw(90)<<"3. NEXT REQUEST\n";
+	design();
+	cout << setw(90)<<"ENTER INDEX (0 FOR EXIT)\n";
 	cin >> response;
 	switch (response[0])
 	{
@@ -594,7 +598,7 @@ int loadSociety()
 int loadClub()
 {
 	string response;
-	cout << "Enter Index: (0 for back)\n";
+	cout << setw(95)<<"Enter Index: (0 for back)\n";
 	cin >> response;
 	if (response.size() > 1)
 		return 0;
@@ -610,7 +614,7 @@ int loadClub()
 int loadItem()
 {
 	string response;
-	cout << "Enter Index: (0 for back)\n";
+	cout << setw(95)<<"Enter Index: (0 for back)\n";
 	cin >> response;
 	if (response[0] - '0' < 0 || response[0] - '0' > 9 || response.size() > 6)
 		return 0;
@@ -633,12 +637,12 @@ int loadAction()
 	{
 		if (stu.rollNo == it.issuedBy.rollNo)
 		{
-			cout << "RETURN? [y/n] ";
+			cout << setw(80)<<"RETURN? [y/n] ";
 			cin >> response;
 			if (response == "y")
 			{
 				stu.requestItemReturn(it.itemID);
-				cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+				cout <<"\n"<<setw(80) << "REQUEST FILED\n"<<setw(80)<<"ENTER 0 TO GO BACK\n";
 				cin >> response;
 				return -1;
 			}
@@ -649,19 +653,19 @@ int loadAction()
 		}
 		else
 		{
-			cout << "ENTER 0 TO GO BACK\n";
+			cout << setw(95)<<"ENTER 0 TO GO BACK\n";
 			cin >> response;
 			return -1;
 		}
 	}
 	else if (find(c.members, stu.rollNo))
 	{
-		cout << "REQUEST ISSUE? [y/n] ";
+		cout <<setw(90)<< "REQUEST ISSUE? [y/n] ";
 		cin >> response;
 		if (response == "y")
 		{
 			stu.requestItem(it.itemID);
-			cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+			cout <<"\n"<<setw(90) <<"\nREQUEST FILED\n"<<setw(90)<<"ENTER 0 TO GO BACK\n";
 			cin >> response;
 			return -1;
 		}
@@ -672,13 +676,13 @@ int loadAction()
 	}
 	else
 	{
-		cout << "YOU ARE NOT A MEMBER OF THIS CLUB YET\n";
-		cout << "REQUEST MEMBERSHIP? [y/n] ";
+		cout <<setw(90)<< "YOU ARE NOT A MEMBER OF THIS CLUB YET\n";
+		cout <<setw(80)<<"REQUEST MEMBERSHIP? [y/n] ";
 		cin >> response;
 		if (response == "y")
 		{
 			stu.requestMembership(c.clubName);
-			cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+			cout <<"\n"<<setw(80)<<"\nREQUEST FILED\n"<<setw(80)<<"ENTER 0 TO GO BACK : ";
 			cin >> response;
 			return -1;
 		}
@@ -695,14 +699,16 @@ int loadCaptainActions()
 	string response;
 	if (c.captain != stu.rollNo)
 	{
-		cout << setw(100)<<"You are not the captain of " << c.clubName << endl;
-		cout << "ENTER 0 TO GO BACK\n";
+		cout << setw(90)<<"You are not the captain of " << c.clubName << endl;
+		cout <<setw(90)<< "ENTER 0 TO GO BACK\n";
 		cin >> response;
 		return 1;
 	}
-	cout << "1. SHOW TRANSACTION REQUESTS\n2. SHOW MEMBERS\n3. SHOW ITEMS\n";
-	cout << "ENTER INDEX (0 for back):\n";
+	design();
+	cout << setw(90)<<"1. SHOW TRANSACTION REQUESTS\n"<<setw(90)<<"2. SHOW MEMBERS\n"<<setw(90)<<"3. SHOW ITEMS\n";
+	cout << setw(90)<<"ENTER INDEX (0 for back):\n";
 	cin >> response;
+	design();
 	if (response.size() > 1)
 		return 0;
 	option = response[0] - '0';
@@ -721,7 +727,7 @@ int loadCaptainActions()
 			s.load(member);
 			s.display();
 		}
-		cout << "ENTER 0 TO GO BACK\n";
+		cout <<setw(90)<< "ENTER 0 TO GO BACK\n";
 		cin >> response;
 		return 0;
 	case 3:
@@ -730,7 +736,7 @@ int loadCaptainActions()
 		{
 			item.display();
 		}
-		cout << "ENTER 0 TO GO BACK\n";
+		cout <<setw(90)<< "ENTER 0 TO GO BACK\n";
 		cin >> response;
 		return 0;
 	default:
