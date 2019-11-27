@@ -181,10 +181,10 @@ public:
 				issuedBy.load(issuedByRoll);
 			}
 			if (id == itemID)
-				return 0;
+				return 1;
 		}
 		fin.close();
-		return 1;
+		return 0;
 	}
 	void display()
 	{
@@ -537,61 +537,58 @@ int loadSociety()
 	vector<string> societies(total);
 	f(i, 0, total) getline(fin, societies[i]);
 
-	cout << "Student Gymkhana\n";
+	cout << "STUDENT GYMKHANA\n\n";
 	f(i, 0, total) cout << i + 1 << ". " << societies[i] << endl;
 	cout << endl;
 
-	int num;
+	string response;
 	cout << "Enter Index: (0 for back)\n";
-	cin >> num;
-	fflush(stdin);
-	if (num == 0)
-	{
-		level -= 2;
+	cin >> response;
+	if (response.size() > 1)
 		return 0;
-	}
-	if (num < 1 || num > 6)
-		return 1;
+	int num = response[0] - '0';
+	if (num == 0)
+		return -1;
+	else if (num < 1 || num > 6)
+		return 0;
 	s.input(societies[num - 1]);
 	fin.close();
-	return 0;
+	return 1;
 }
 
 int loadClub()
 {
-	int num;
+	string response;
 	cout << "Enter Index: (0 for back)\n";
-	cin >> num;
-	fflush(stdin);
-	if (num == 0)
-	{
-		level -= 2;
+	cin >> response;
+	if (response.size() > 1)
 		return 0;
-	}
+	int num = response[0] - '0';
+	if (num == 0)
+		return -1;
 	if (num < 1 || num > s.clubs.size())
-		return 1;
+		return 0;
 	c.input(s.clubs[num - 1]);
-	return 0;
+	return 1;
 }
 
 int loadItem()
 {
-	int num;
+	string response;
 	cout << "Enter Index: (0 for back)\n";
-	cin >> num;
-	fflush(stdin);
-	if (num == 0)
-	{
-		level -= 2;
+	cin >> response;
+	if (response[0] - '0' < 0 || response[0] - '0' > 9 || response.size() > 6)
 		return 0;
-	}
+	int num = stoi(response);
+	if (num == 0)
+		return -1;
 	int flag = 0;
 	f(i, 0, c.itemsAvailable.size())
 		flag |= (num == c.itemsAvailable[i].itemID);
 	if (!flag)
-		return 1;
-	int exitStatus = it.input(num);
-	return exitStatus;
+		return 0;
+	int levelChange = it.input(num);
+	return levelChange;
 }
 
 int loadAction()
@@ -603,40 +600,57 @@ int loadAction()
 		{
 			cout << "RETURN? [y/n] ";
 			cin >> response;
-			if (response == "n" || response == "y")
-				level--;
 			if (response == "y")
+			{
 				stu.requestItemReturn(it.itemID);
-			return 0;
+				cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+				cin >> response;
+				return -1;
+			}
+			else if (response == "n")
+				return -1;
+			else
+				return 0;
 		}
 		else
 		{
 			cout << "ENTER 0 TO GO BACK\n";
 			cin >> response;
-			level--;
-			return 0;
+			return -1;
 		}
 	}
 	else if (find(c.members, stu.rollNo))
 	{
 		cout << "REQUEST ISSUE? [y/n] ";
 		cin >> response;
-		if (response == "n" || response == "y")
-			level--;
 		if (response == "y")
+		{
 			stu.requestItem(it.itemID);
-		return 0;
+			cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+			cin >> response;
+			return -1;
+		}
+		else if (response == "n")
+			return -1;
+		else
+			return 0;
 	}
 	else
 	{
 		cout << "YOU ARE NOT A MEMBER OF THIS CLUB YET\n";
 		cout << "REQUEST MEMBERSHIP? [y/n] ";
 		cin >> response;
-		if (response == "n" || response == "y")
-			level--;
 		if (response == "y")
+		{
 			stu.requestMembership(c.clubName);
-		return 0;
+			cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+			cin >> response;
+			return -1;
+		}
+		else if (response == "n")
+			return -1;
+		else
+			return 0;
 	}
 }
 
@@ -653,9 +667,10 @@ int loadCaptainActions()
 	}
 	cout << "1. SHOW TRANSACTION REQUESTS\n2. SHOW MEMBERS\n3. SHOW ITEMS\n";
 	cout << "ENTER INDEX (0 for back):\n";
-
-	cin >> option;
-	fflush(stdin);
+	cin >> response;
+	if (response.size() > 1)
+		return 0;
+	option = response[0] - '0';
 	switch (option)
 	{
 	case 0:
@@ -690,65 +705,64 @@ int loadCaptainActions()
 
 void EXIT(int input)
 {
-	if (level)
-		level--;
-	else
-		exit(0);
+	level -= input;
 }
 
 void display()
 {
-	int exitStatus;
+	int exitStatus, levelChange;
+	string response;
 	switch (level)
 	{
 	case 0:
-		cout << "1. Student\n2. Captain\n3. Exit\n\n";
-		cin >> mode;
-		if (!(mode == 1 || mode == 2))
-			EXIT(0);
 		exitStatus = loadStudent();
-		if (exitStatus)
-			EXIT(0);
-		level++;
+		if (!exitStatus)
+			level++;
 		break;
 	case 1:
-		exitStatus = loadSociety();
-		if (exitStatus)
-			EXIT(0);
-		level++;
-		return;
+		cout << "LOGIN AS:\n\n1. Student\n2. Captain\n3. Logout\n\n";
+		cout << "Enter Index:\n";
+		cin >> response;
+		if (response.size() > 1)
+			return;
+		mode = response[0] - '0';
+		if (mode == 3)
+			EXIT(1);
+		else if (mode == 1 || mode == 2)
+			level++;
 		break;
 	case 2:
-		s.display();
-		exitStatus = loadClub();
-		if (exitStatus)
-			EXIT(0);
-		level++;
-		return;
+		levelChange = loadSociety();
+		level += levelChange;
+		break;
 	case 3:
+		s.display();
+		levelChange = loadClub();
+		level += levelChange;
+		break;
+	case 4:
 		if (mode == STUDENT)
 		{
 			c.display();
-			exitStatus = loadItem();
-			if (exitStatus)
-				EXIT(0);
-			level++;
+			levelChange = loadItem();
+			level += levelChange;
+			break;
 		}
 		else
 		{
 			exitStatus = loadCaptainActions();
 			if (exitStatus)
-				EXIT(0);
+				EXIT(1);
 		}
 		return;
-	case 4:
+	case 5:
 		it.display();
-		exitStatus = loadAction();
-		if (exitStatus)
-			EXIT(0);
+		levelChange = loadAction();
+		level += levelChange;
+		break;
 		return;
 	default:
-		EXIT(0);
+		EXIT(1);
 	}
 }
 int main()
