@@ -4,12 +4,34 @@
 #include <string>
 #include <stdio.h>
 #include <unistd.h>
-
-#define clear() printf("\033[H\033[J")
+#include <time.h>
+#include <iomanip>
+using namespace std;
+#define clear() cout << "\033[2J\033[15;1H";
+int static key=0;
+void design()
+{
+	for(int i=0;i<40;i++)
+	cout<<" ";
+	for(int i=0;i<80;i++)
+	cout<<"*";
+	cout<<"\n\n";	
+}
+void spacing()
+{
+	for(int i=0;i<80;i++) cout<<" ";
+}
+void entry()
+{
+	clear();
+	design();
+	cout << setw(110) << "Welcome To Inventory Management System Of IIT Jodhpur\n\n"; 
+	design();
+	sleep(3);
+}
 #define STUDENT 1
 #define CAPTAIN 2
 #define f(i, n, m) for (int i = n; i < m; i++)
-using namespace std;
 
 int level = 0, mode = 0;
 template <typename T>
@@ -20,7 +42,6 @@ bool find(vector<T> v, T elem)
 		flag |= elem == e;
 	return flag;
 }
-
 class Student
 {
 private:
@@ -148,8 +169,10 @@ public:
 	}
 	void display()
 	{
-		cout << societyName << endl;
-		f(i, 0, clubs.size()) cout << i + 1 << ". " << clubs[i] << endl;
+		design();
+		cout << setw(100)<<societyName << endl;
+		f(i, 0, clubs.size()) cout <<setw(70)<< i + 1 << ". " << clubs[i] << endl;
+		design();
 		cout << endl;
 	}
 } s;
@@ -257,10 +280,12 @@ public:
 	void display()
 	{
 		cout << clubName << endl;
+		design();
 		f(i, 0, itemsAvailable.size())
 		{
-			cout << itemsAvailable[i].itemID << " " << itemsAvailable[i].name << " " << (itemsAvailable[i].status == "ISSUED" ? ":NOT AVAILABLE" : ":AVAILABLE") << endl;
+			cout <<setw(70)<< itemsAvailable[i].itemID << " " << itemsAvailable[i].name << " " << (itemsAvailable[i].status == "ISSUED" ? ":NOT AVAILABLE" : ":AVAILABLE") << endl;
 		}
+		design();
 		cout << endl;
 	}
 } c;
@@ -517,10 +542,14 @@ label:
 int loadStudent()
 {
 	string ldap, pass;
-	cout << "Enter LDAP:";
+	design();
+	cout << setw(90)<<"Enter LDAP:";
 	cin >> ldap;
+	spacing();
 	getline(cin, pass);
+	
 	pass = getpass("Enter Password:");
+	design();
 	int exitStatus = stu.input(ldap, pass);
 	if (exitStatus)
 		return 1;
@@ -536,14 +565,20 @@ int loadSociety()
 	getline(fin, dump);
 	vector<string> societies(total);
 	f(i, 0, total) getline(fin, societies[i]);
-
-	cout << "STUDENT GYMKHANA\n\n";
-	f(i, 0, total) cout << i + 1 << ". " << societies[i] << endl;
+	design();
+	cout <<setw(90)<< "STUDENT GYMKHANA\n\n";
+	f(i, 0, total) 
+	{
+		
+		cout <<setw(65)<< i + 1 << ". " << societies[i] << endl;
+	}
 	cout << endl;
+	design();
 
 	string response;
-	cout << "Enter Index: (0 for back)\n";
+	cout << setw(95)<<"Enter Index: (0 for back) : ";
 	cin >> response;
+	
 	if (response.size() > 1)
 		return 0;
 	int num = response[0] - '0';
@@ -660,7 +695,7 @@ int loadCaptainActions()
 	string response;
 	if (c.captain != stu.rollNo)
 	{
-		cout << "You are not the captain of " << c.clubName << endl;
+		cout << setw(100)<<"You are not the captain of " << c.clubName << endl;
 		cout << "ENTER 0 TO GO BACK\n";
 		cin >> response;
 		return 1;
@@ -720,9 +755,11 @@ void display()
 			level++;
 		break;
 	case 1:
-		cout << "LOGIN AS:\n\n1. Student\n2. Captain\n3. Logout\n\n";
-		cout << "Enter Index:\n";
+		design();
+		cout << setw(80)<<"LOGIN AS:\n\n"<<setw(80)<<"1. Student\n"<<setw(80)<<"2. Captain\n"<<setw(80)<<"3. Logout\n\n";
+		cout << setw(80)<<"Enter Index : ";
 		cin >> response;
+		design();
 		if (response.size() > 1)
 			return;
 		mode = response[0] - '0';
@@ -770,6 +807,12 @@ int main()
 	while (1)
 	{
 		clear();
+		if(!key)
+		{
+			entry();
+			clear();
+			key++;
+		}
 		display();
 	}
 }
