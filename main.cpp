@@ -2,38 +2,56 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <sys/ioctl.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
 #include <iomanip>
 using namespace std;
-#define clear() cout << "\033[2J\033[15;1H";
-int static key=0;
-void design()
-{
-	for(int i=0;i<40;i++)
-	cout<<" ";
-	for(int i=0;i<80;i++)
-	cout<<"*";
-	cout<<"\n\n";	
-}
-void spacing()
-{
-	for(int i=0;i<80;i++) cout<<" ";
-}
-void entry()
-{
-	clear();
-	design();
-	cout << setw(110) << "Welcome To Inventory Management System Of IIT Jodhpur\n\n"; 
-	design();
-	sleep(3);
-}
+// #define clear() cout << "\033[2J\033[15;1H";
+#define clear() printf("\033[H\033[J")
 #define STUDENT 1
 #define CAPTAIN 2
 #define f(i, n, m) for (int i = n; i < m; i++)
 
 int level = 0, mode = 0;
+struct winsize w;
+
+void align_middle(string s, int leftSpacing = 0)
+{
+	int n = s.size();
+	cout << setw((w.ws_col + n) / 2 - leftSpacing) << right << s;
+}
+
+void padding(int n = 1)
+{
+	f(i, 0, n) cout << " ";
+}
+
+void spacing(int n = 1)
+{
+	for (int i = 0; i < n; i++)
+		cout << endl;
+}
+
+void design(int n = w.ws_col / 2)
+{
+	string s;
+	f(i, 0, n) s.push_back('*');
+	spacing(2);
+	align_middle(s);
+	spacing(2);
+	return;
+}
+
+void header()
+{
+	design();
+	align_middle("Welcome To Inventory Management System Of IIT Jodhpur");
+	design();
+	// sleep(1);
+}
+
 template <typename T>
 bool find(vector<T> v, T elem)
 {
@@ -89,9 +107,11 @@ public:
 	}
 	void display()
 	{
-		cout << name << endl
-			 << rollNo << endl
-			 << ldap << endl;
+		align_middle(name);
+		cout << endl;
+		align_middle(rollNo);
+		cout << endl;
+		align_middle(ldap);
 		cout << endl;
 	}
 	void requestItem(int item)
@@ -113,6 +133,7 @@ public:
 		fout.close();
 	}
 } stu;
+
 class Captain : public Student
 {
 	string password;
@@ -169,10 +190,9 @@ public:
 	}
 	void display()
 	{
-		design();
-		cout << setw(100)<<societyName << endl;
-		f(i, 0, clubs.size()) cout <<setw(70)<< i + 1 << ". " << clubs[i] << endl;
-		design();
+		align_middle(societyName + "\n\n");
+		f(i, 0, clubs.size())
+			align_middle(to_string(i + 1) + ". " + clubs[i] + "\n");
 		cout << endl;
 	}
 } s;
@@ -211,16 +231,18 @@ public:
 	}
 	void display()
 	{
-		cout << itemID << " " << name << endl;
+		align_middle(to_string(itemID) + " " + name);
+		cout << endl;
 		if (status == "ISSUED")
 		{
 
-			cout << "ISSUED BY:\n";
+			align_middle("ISSUED BY:\n");
 			issuedBy.display();
 		}
 		else
 		{
-			cout << status << endl;
+			align_middle(status);
+			cout << endl;
 		}
 		cout << endl;
 	}
@@ -279,13 +301,14 @@ public:
 	}
 	void display()
 	{
-		cout << clubName << endl;
-		design();
+		align_middle(clubName);
+		spacing(2);
 		f(i, 0, itemsAvailable.size())
 		{
-			cout <<setw(70)<< itemsAvailable[i].itemID << " " << itemsAvailable[i].name << " " << (itemsAvailable[i].status == "ISSUED" ? ":NOT AVAILABLE" : ":AVAILABLE") << endl;
+			cout << setw(w.ws_col / 3) << right << to_string(itemsAvailable[i].itemID) + " "
+				 << setw(w.ws_col / 3) << left << itemsAvailable[i].name
+				 << setw(w.ws_col / 3) << left << (itemsAvailable[i].status == "ISSUED" ? ":NOT AVAILABLE" : ":AVAILABLE") << endl;
 		}
-		design();
 		cout << endl;
 	}
 } c;
@@ -325,16 +348,16 @@ public:
 
 	void display()
 	{
-		cout << request << endl
-			 << endl;
+		align_middle(request);
+		cout << endl;
 		student.display();
+		cout << endl;
 		if (request == "REQUEST_ITEM_RETURN" || request == "REQUEST_ITEM")
 		{
 			item.display();
 		}
-		cout << endl
-			 << signature() << endl
-			 << endl;
+		align_middle(signature());
+		cout << endl;
 	}
 
 	string signature()
@@ -501,6 +524,12 @@ label:
 	{
 		transaction_fin.close();
 		write(confirm_ts, skipped_ts);
+		clear();
+		header();
+		align_middle("NO NEW REQUESTS");
+		cout << endl;
+		align_middle("ENTER 0 TO GO BACK: ");
+		cin >> response;
 		return;
 	}
 	if (!t.relative())
@@ -509,9 +538,16 @@ label:
 		goto label;
 	}
 	clear();
+	header();
 	t.display();
-	cout << "1. ACCEPT\n2. DECLINE\n3. NEXT REQUEST\n";
-	cout << "ENTER INDEX (0 FOR EXIT)\n";
+	spacing(2);
+	align_middle("1. ACCEPT");
+	cout << endl;
+	align_middle("2. DECLINE");
+	cout << endl;
+	align_middle("3. NEXT REQUEST");
+	cout << endl;
+	align_middle("ENTER INDEX (0 FOR EXIT): ");
 	cin >> response;
 	switch (response[0])
 	{
@@ -536,20 +572,23 @@ label:
 	}
 	transaction_fin.close();
 	write(confirm_ts, skipped_ts);
+	clear();
+	header();
+	align_middle("NO NEW REQUESTS");
+	cout << endl;
+	align_middle("ENTER 0 TO GO BACK: ");
+	cin >> response;
 	return;
 }
 
 int loadStudent()
 {
 	string ldap, pass;
-	design();
-	cout << setw(90)<<"Enter LDAP:";
+	align_middle("Enter LDAP: ", 5);
 	cin >> ldap;
-	spacing();
 	getline(cin, pass);
-	
-	pass = getpass("Enter Password:");
-	design();
+	align_middle("Enter PASS: ", 5);
+	pass = getpass("");
 	int exitStatus = stu.input(ldap, pass);
 	if (exitStatus)
 		return 1;
@@ -565,20 +604,14 @@ int loadSociety()
 	getline(fin, dump);
 	vector<string> societies(total);
 	f(i, 0, total) getline(fin, societies[i]);
-	design();
-	cout <<setw(90)<< "STUDENT GYMKHANA\n\n";
-	f(i, 0, total) 
-	{
-		
-		cout <<setw(65)<< i + 1 << ". " << societies[i] << endl;
-	}
+	align_middle("STUDENT GYMKHANA\n\n");
+	f(i, 0, total)
+		align_middle(to_string(i + 1) + ". " + societies[i] + "\n");
 	cout << endl;
-	design();
-
 	string response;
-	cout << setw(95)<<"Enter Index: (0 for back) : ";
+	align_middle("Enter Index [ 0 :: BACK ] : ");
 	cin >> response;
-	
+
 	if (response.size() > 1)
 		return 0;
 	int num = response[0] - '0';
@@ -594,7 +627,7 @@ int loadSociety()
 int loadClub()
 {
 	string response;
-	cout << "Enter Index: (0 for back)\n";
+	align_middle("Enter Index [ 0 :: BACK ] : ");
 	cin >> response;
 	if (response.size() > 1)
 		return 0;
@@ -610,7 +643,7 @@ int loadClub()
 int loadItem()
 {
 	string response;
-	cout << "Enter Index: (0 for back)\n";
+	align_middle("Enter Index [ 0 :: BACK ] : ");
 	cin >> response;
 	if (response[0] - '0' < 0 || response[0] - '0' > 9 || response.size() > 6)
 		return 0;
@@ -633,12 +666,13 @@ int loadAction()
 	{
 		if (stu.rollNo == it.issuedBy.rollNo)
 		{
-			cout << "RETURN? [y/n] ";
+			align_middle("RETURN? [y/n] ");
 			cin >> response;
 			if (response == "y")
 			{
 				stu.requestItemReturn(it.itemID);
-				cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+				align_middle("REQUEST FILED\n");
+				align_middle("ENTER 0 TO GO BACK: ");
 				cin >> response;
 				return -1;
 			}
@@ -649,19 +683,20 @@ int loadAction()
 		}
 		else
 		{
-			cout << "ENTER 0 TO GO BACK\n";
+			align_middle("ENTER 0 TO GO BACK: ");
 			cin >> response;
 			return -1;
 		}
 	}
 	else if (find(c.members, stu.rollNo))
 	{
-		cout << "REQUEST ISSUE? [y/n] ";
+		align_middle("REQUEST ISSUE? [y/n] ");
 		cin >> response;
 		if (response == "y")
 		{
 			stu.requestItem(it.itemID);
-			cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+			align_middle("REQUEST FILED\n");
+			align_middle("ENTER 0 TO GO BACK: ");
 			cin >> response;
 			return -1;
 		}
@@ -672,13 +707,14 @@ int loadAction()
 	}
 	else
 	{
-		cout << "YOU ARE NOT A MEMBER OF THIS CLUB YET\n";
-		cout << "REQUEST MEMBERSHIP? [y/n] ";
+		align_middle("YOU ARE NOT A MEMBER OF THIS CLUB YET\n");
+		align_middle("REQUEST MEMBERSHIP? [y/n] ");
 		cin >> response;
 		if (response == "y")
 		{
 			stu.requestMembership(c.clubName);
-			cout << "\nREQUEST FILED\nENTER 0 TO GO BACK\n";
+			align_middle("REQUEST FILED\n");
+			align_middle("ENTER 0 TO GO BACK: ");
 			cin >> response;
 			return -1;
 		}
@@ -695,13 +731,15 @@ int loadCaptainActions()
 	string response;
 	if (c.captain != stu.rollNo)
 	{
-		cout << setw(100)<<"You are not the captain of " << c.clubName << endl;
-		cout << "ENTER 0 TO GO BACK\n";
+		align_middle("You are not the captain of " + c.clubName);
+		align_middle("ENTER 0 TO GO BACK: ");
 		cin >> response;
 		return 1;
 	}
-	cout << "1. SHOW TRANSACTION REQUESTS\n2. SHOW MEMBERS\n3. SHOW ITEMS\n";
-	cout << "ENTER INDEX (0 for back):\n";
+	align_middle("1. SHOW TRANSACTION REQUESTS\n");
+	align_middle("2. SHOW MEMBERS\n");
+	align_middle("3. SHOW ITEMS\n");
+	align_middle("ENTER INDEX (0 for back): ");
 	cin >> response;
 	if (response.size() > 1)
 		return 0;
@@ -715,22 +753,24 @@ int loadCaptainActions()
 		return 0;
 	case 2:
 		clear();
+		header();
 		for (auto member : c.members)
 		{
 			Student s;
 			s.load(member);
 			s.display();
 		}
-		cout << "ENTER 0 TO GO BACK\n";
+		align_middle("ENTER 0 TO GO BACK: ");
 		cin >> response;
 		return 0;
 	case 3:
 		clear();
+		header();
 		for (auto item : c.itemsAvailable)
 		{
 			item.display();
 		}
-		cout << "ENTER 0 TO GO BACK\n";
+		align_middle("ENTER 0 TO GO BACK: ");
 		cin >> response;
 		return 0;
 	default:
@@ -755,11 +795,12 @@ void display()
 			level++;
 		break;
 	case 1:
-		design();
-		cout << setw(80)<<"LOGIN AS:\n\n"<<setw(80)<<"1. Student\n"<<setw(80)<<"2. Captain\n"<<setw(80)<<"3. Logout\n\n";
-		cout << setw(80)<<"Enter Index : ";
+		align_middle("LOGIN AS:\n\n");
+		align_middle("1. Student\n", 5);
+		align_middle("2. Captain\n", 5);
+		align_middle("3. Logout\n\n", 5);
+		align_middle("Enter Index : ");
 		cin >> response;
-		design();
 		if (response.size() > 1)
 			return;
 		mode = response[0] - '0';
@@ -804,15 +845,11 @@ void display()
 }
 int main()
 {
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	while (1)
 	{
 		clear();
-		if(!key)
-		{
-			entry();
-			clear();
-			key++;
-		}
+		header();
 		display();
 	}
 }
