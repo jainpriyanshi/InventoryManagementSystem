@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -321,7 +322,23 @@ public:
 		}
 		return 0;
 	}
-
+	int load(stringstream &s)
+	{
+		itemID = 0;
+		s >> studentRollNo >> request >> time;
+		student.load(studentRollNo);
+		if (request == "REQUEST_ITEM_RETURN" || request == "REQUEST_ITEM")
+		{
+			s >> itemID;
+			item.input(itemID);
+		}
+		else
+		{
+			getline(s, clubName);
+			clubName = clubName.substr(1);
+		}
+		return 0;
+	}
 	void display()
 	{
 		align_middle(request);
@@ -367,7 +384,11 @@ public:
 				return (item.status == "ISSUED" && item.issuedBy.rollNo == studentRollNo);
 		}
 		else
-			return !find(c.members, studentRollNo);
+		{
+			Club club;
+			club.input(clubName);
+			return !find(club.members, studentRollNo);
+		}
 	}
 };
 
@@ -400,7 +421,7 @@ private:
 					{
 						fout << "ISSUED" << endl
 							 << t.studentRollNo << endl
-							 << currentDateTime() << endl;
+							 << t.time << endl;
 					}
 					else
 					{
@@ -496,6 +517,7 @@ private:
 		}
 	}
 	friend void transactions();
+	friend void incoming_transaction(const char *signature, bool confirm);
 } cap;
 
 class ClubMember : public Student, public Club
@@ -875,10 +897,38 @@ void display()
 		EXIT(1);
 	}
 }
-int main()
+
+void incoming_transaction(const char *signature, bool confirm = 0)
+{
+	if (confirm)
+	{
+		stringstream s(signature);
+		transaction confirmed;
+		confirmed.load(s);
+		confirmed.display();
+		if (confirmed.valid())
+		{
+			Captain().sign(confirmed);
+			ofstream fout("confirm_transactions.txt", ios::app);
+			fout << signature << endl;
+			fout.close();
+		}
+	}
+	else
+	{
+		ofstream fout("request_transactions.txt", ios::app);
+		fout << signature << endl;
+		fout.close();
+	}
+}
+
+int main(int argc, char **argv)
 {
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	while (1)
+	if (argc == 3)
+		incoming_transaction(argv[2], strcmp(argv[1], "-c") == 0);
+
+	while (argc == 1)
 	{
 		clear();
 		header();
