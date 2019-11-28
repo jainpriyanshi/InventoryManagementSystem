@@ -36,7 +36,7 @@ Programming And Web Development Club
 Robotics Club
 Science Club
 Sports and Games Society
-10
+9
 Atheletics
 Badminton
 Basketball
@@ -46,4 +46,3 @@ Football
 Lawn Tennis
 Table Tennis
 Volleyball
-Weightlifting 

@@ -1,4 +1,4 @@
-36
+35
 Carrer Planning Club
 4
 532225 Career Development Book
@@ -209,9 +209,3 @@ Volleyball
 2
 500129 Volleyball
 709140 Net
-Weightlifting
-4
-216272 Dumbells
-162116 Barbell
-818782 Dipbar
-466705 Bumper Plates

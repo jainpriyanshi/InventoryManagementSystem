@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <iomanip>
+#include <time.h>
 using namespace std;
 // #define clear() cout << "\033[2J\033[15;1H";
 #define clear() printf("\033[H\033[J")
@@ -16,6 +17,16 @@ using namespace std;
 
 int level = 0, mode = 0;
 struct winsize w;
+
+const std::string currentDateTime()
+{
+	time_t now = time(0);
+	struct tm tstruct;
+	char buf[80];
+	tstruct = *localtime(&now);
+	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+	return buf;
+}
 
 void align_middle(string s, int leftSpacing = 0)
 {
@@ -114,59 +125,19 @@ public:
 		align_middle(ldap);
 		cout << endl;
 	}
-	void requestItem(int item)
-	{
-		ofstream fout("request_transactions.txt", ios::app);
-		fout << rollNo << " REQUEST_ITEM " << item << endl;
-		fout.close();
-	}
-	void requestItemReturn(int item)
-	{
-		ofstream fout("request_transactions.txt", ios::app);
-		fout << rollNo << " REQUEST_ITEM_RETURN " << item << endl;
-		fout.close();
-	}
 	void requestMembership(string club)
 	{
 		ofstream fout("request_transactions.txt", ios::app);
-		fout << rollNo << " REQUEST_MEMBERSHIP " << club << endl;
+		fout << rollNo << " REQUEST_MEMBERSHIP " << currentDateTime() << " " << club << endl;
 		fout.close();
 	}
 } stu;
 
-class Captain : public Student
-{
-	string password;
-
-public:
-	bool verifymember();
-	void searchItem();
-	void issueItem();
-	void returnItem();
-	void createReceipt();
-};
-
-class ClubMember : public Student
-{
-	string Password;
-
-public:
-	vector<string> itemsIssued;
-	void updateItemsIssued();
-};
-
 class Society
 {
-private:
-	int budgetAlloted;
-	int budgetUsed;
-
 public:
 	string societyName;
-	string secretaryName;
 	vector<string> clubs;
-	string facultyAdvisor;
-	bool approveRequest();
 	void input(string name)
 	{
 		ifstream fin("society_clubs.txt");
@@ -203,6 +174,7 @@ public:
 	int itemID;
 	string name;
 	string status;
+	string issuedOn;
 	Student issuedBy;
 	int input(int id)
 	{
@@ -222,6 +194,7 @@ public:
 				string issuedByRoll;
 				getline(fin, issuedByRoll);
 				issuedBy.load(issuedByRoll);
+				getline(fin, issuedOn);
 			}
 			if (id == itemID)
 				return 1;
@@ -238,6 +211,8 @@ public:
 
 			align_middle("ISSUED BY:\n");
 			issuedBy.display();
+			align_middle("ISSUED ON: " + issuedOn);
+			cout << endl;
 		}
 		else
 		{
@@ -321,6 +296,7 @@ public:
 	string studentRollNo;
 	Student student;
 	string request;
+	string time;
 	int itemID;
 	Item item;
 	string clubName;
@@ -332,7 +308,7 @@ public:
 		else
 			return 1;
 		student.load(studentRollNo);
-		transaction_fin >> request;
+		transaction_fin >> request >> time;
 		if (request == "REQUEST_ITEM_RETURN" || request == "REQUEST_ITEM")
 		{
 			transaction_fin >> itemID;
@@ -350,6 +326,8 @@ public:
 	{
 		align_middle(request);
 		cout << endl;
+		align_middle(time);
+		cout << endl;
 		student.display();
 		cout << endl;
 		if (request == "REQUEST_ITEM_RETURN" || request == "REQUEST_ITEM")
@@ -363,9 +341,9 @@ public:
 	string signature()
 	{
 		if (itemID)
-			return studentRollNo + " " + request + " " + to_string(itemID);
+			return studentRollNo + " " + request + " " + time + " " + to_string(itemID);
 		else
-			return studentRollNo + " " + request + " " + clubName;
+			return studentRollNo + " " + request + " " + time + " " + clubName;
 	}
 
 	bool relative()
@@ -379,11 +357,28 @@ public:
 		return flag;
 	}
 
-	void accept()
+	bool valid()
 	{
 		if (itemID)
 		{
 			if (request == "REQUEST_ITEM")
+				return (item.status == "NOT_ISSUED");
+			else
+				return (item.status == "ISSUED" && item.issuedBy.rollNo == studentRollNo);
+		}
+		else
+			return !find(c.members, studentRollNo);
+	}
+};
+
+class Captain : public Student, public Club
+{
+private:
+	void sign(transaction t)
+	{
+		if (t.itemID)
+		{
+			if (t.request == "REQUEST_ITEM")
 			{
 				ifstream fin("item_details.txt");
 				ofstream fout("item_details_new.txt");
@@ -401,10 +396,11 @@ public:
 					fout << item.itemID << endl;
 					getline(fin, item.status);
 					getline(fin, item.status);
-					if (itemID == item.itemID)
+					if (t.itemID == item.itemID)
 					{
 						fout << "ISSUED" << endl
-							 << studentRollNo << endl;
+							 << t.studentRollNo << endl
+							 << currentDateTime() << endl;
 					}
 					else
 					{
@@ -414,13 +410,15 @@ public:
 							string issuedByRoll;
 							getline(fin, issuedByRoll);
 							fout << issuedByRoll << endl;
+							item.issuedBy.load(issuedByRoll);
+							getline(fin, item.issuedOn);
+							fout << item.issuedOn << endl;
 						}
 					}
 				}
 				fin.close();
 				fout.close();
 				rename("item_details_new.txt", "item_details.txt");
-				c.input(c.clubName);
 			}
 			else
 			{
@@ -444,8 +442,9 @@ public:
 					if (item.status == "ISSUED")
 					{
 						getline(fin, issuedByRoll);
+						getline(fin, item.issuedOn);
 					}
-					if (itemID == item.itemID)
+					if (t.itemID == item.itemID)
 					{
 						fout << "NOT_ISSUED" << endl;
 					}
@@ -455,13 +454,13 @@ public:
 						if (item.status == "ISSUED")
 						{
 							fout << issuedByRoll << endl;
+							fout << item.issuedOn << endl;
 						}
 					}
 				}
 				fin.close();
 				fout.close();
 				rename("item_details_new.txt", "item_details.txt");
-				c.input(c.clubName);
 			}
 		}
 		else
@@ -484,8 +483,8 @@ public:
 				getline(fin, s);
 				vector<string> memb(n);
 				f(j, 0, n) getline(fin, memb[j]);
-				if (clubName == name)
-					memb.push_back(studentRollNo);
+				if (t.clubName == name)
+					memb.push_back(t.studentRollNo);
 				fout << name << endl
 					 << cap << endl
 					 << memb.size() << endl;
@@ -494,10 +493,32 @@ public:
 			fin.close();
 			fout.close();
 			rename("club_members_new.txt", "club_members.txt");
-			c.input(c.clubName);
 		}
 	}
-};
+	friend void transactions();
+} cap;
+
+class ClubMember : public Student, public Club
+{
+public:
+	void input(string rollNo, string clubName)
+	{
+		Student::load(rollNo);
+		Club::input(clubName);
+	}
+	void requestItem(int item)
+	{
+		ofstream fout("request_transactions.txt", ios::app);
+		fout << rollNo << " REQUEST_ITEM " << currentDateTime() << " " << item << endl;
+		fout.close();
+	}
+	void requestItemReturn(int item)
+	{
+		ofstream fout("request_transactions.txt", ios::app);
+		fout << rollNo << " REQUEST_ITEM_RETURN " << currentDateTime() << " " << item << endl;
+		fout.close();
+	}
+} clubMember;
 
 void write(vector<string> confirm, vector<string> skipped)
 {
@@ -537,6 +558,9 @@ label:
 		skipped_ts.push_back(t.signature());
 		goto label;
 	}
+	else if (!t.valid())
+		goto label;
+
 	clear();
 	header();
 	t.display();
@@ -547,15 +571,16 @@ label:
 	cout << endl;
 	align_middle("3. NEXT REQUEST");
 	cout << endl;
-	align_middle("ENTER INDEX (0 FOR EXIT): ");
+	align_middle("ENTER INDEX [ 0 :: EXIT ] : ");
 	cin >> response;
 	switch (response[0])
 	{
 	case '0':
 		break;
 	case '1':
-		t.accept();
+		cap.sign(t);
 		confirm_ts.push_back(t.signature());
+		c.input(c.clubName);
 		goto label;
 	case '2':
 		goto label;
@@ -662,50 +687,7 @@ int loadItem()
 int loadAction()
 {
 	string response;
-	if (it.status == "ISSUED")
-	{
-		if (stu.rollNo == it.issuedBy.rollNo)
-		{
-			align_middle("RETURN? [y/n] ");
-			cin >> response;
-			if (response == "y")
-			{
-				stu.requestItemReturn(it.itemID);
-				align_middle("REQUEST FILED\n");
-				align_middle("ENTER 0 TO GO BACK: ");
-				cin >> response;
-				return -1;
-			}
-			else if (response == "n")
-				return -1;
-			else
-				return 0;
-		}
-		else
-		{
-			align_middle("ENTER 0 TO GO BACK: ");
-			cin >> response;
-			return -1;
-		}
-	}
-	else if (find(c.members, stu.rollNo))
-	{
-		align_middle("REQUEST ISSUE? [y/n] ");
-		cin >> response;
-		if (response == "y")
-		{
-			stu.requestItem(it.itemID);
-			align_middle("REQUEST FILED\n");
-			align_middle("ENTER 0 TO GO BACK: ");
-			cin >> response;
-			return -1;
-		}
-		else if (response == "n")
-			return -1;
-		else
-			return 0;
-	}
-	else
+	if (!find(c.members, stu.rollNo))
 	{
 		align_middle("YOU ARE NOT A MEMBER OF THIS CLUB YET\n");
 		align_middle("REQUEST MEMBERSHIP? [y/n] ");
@@ -723,6 +705,53 @@ int loadAction()
 		else
 			return 0;
 	}
+	else
+	{
+		clubMember.input(stu.rollNo, c.clubName);
+		if (it.status == "ISSUED")
+		{
+			if (clubMember.rollNo == it.issuedBy.rollNo)
+			{
+				align_middle("RETURN? [y/n] ");
+				cin >> response;
+				if (response == "y")
+				{
+					clubMember.requestItemReturn(it.itemID);
+					align_middle("REQUEST FILED\n");
+					align_middle("ENTER 0 TO GO BACK: ");
+					cin >> response;
+					return -1;
+				}
+				else if (response == "n")
+					return -1;
+				else
+					return 0;
+			}
+			else
+			{
+				align_middle("ENTER 0 TO GO BACK: ");
+				cin >> response;
+				return -1;
+			}
+		}
+		else
+		{
+			align_middle("REQUEST ISSUE? [y/n] ");
+			cin >> response;
+			if (response == "y")
+			{
+				clubMember.requestItem(it.itemID);
+				align_middle("REQUEST FILED\n");
+				align_middle("ENTER 0 TO GO BACK: ");
+				cin >> response;
+				return -1;
+			}
+			else if (response == "n")
+				return -1;
+			else
+				return 0;
+		}
+	}
 }
 
 int loadCaptainActions()
@@ -736,10 +765,13 @@ int loadCaptainActions()
 		cin >> response;
 		return 1;
 	}
+	else
+		cap.load(stu.rollNo);
 	align_middle("1. SHOW TRANSACTION REQUESTS\n");
 	align_middle("2. SHOW MEMBERS\n");
 	align_middle("3. SHOW ITEMS\n");
-	align_middle("ENTER INDEX (0 for back): ");
+	cout << endl;
+	align_middle("ENTER INDEX [ 0 :: BACK ] : ");
 	cin >> response;
 	if (response.size() > 1)
 		return 0;
@@ -799,7 +831,7 @@ void display()
 		align_middle("1. Student\n", 5);
 		align_middle("2. Captain\n", 5);
 		align_middle("3. Logout\n\n", 5);
-		align_middle("Enter Index : ");
+		align_middle("Enter Index: ");
 		cin >> response;
 		if (response.size() > 1)
 			return;
