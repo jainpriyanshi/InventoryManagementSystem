@@ -9,6 +9,7 @@
 #include <time.h>
 #include <iomanip>
 #include <time.h>
+#include <thread>
 using namespace std;
 // #define clear() cout << "\033[2J\033[15;1H";
 #define clear() printf("\033[H\033[J")
@@ -16,6 +17,7 @@ using namespace std;
 #define CAPTAIN 2
 #define f(i, n, m) for (int i = n; i < m; i++)
 
+char cwd[1024];
 int level = 0, mode = 0;
 struct winsize w;
 
@@ -61,7 +63,20 @@ void header()
 	design();
 	align_middle("Welcome To Inventory Management System Of IIT Jodhpur");
 	design();
-	// sleep(1);
+}
+
+vector<thread> th;
+void broadcast(string mail, string signature, bool confirm)
+{
+	f(i, 1, 4)
+	{
+		chdir(("/home/kunal/work/blockchain/node" + to_string(i)).c_str());
+		system(((string) "./main " + (confirm ? "-c" : "-r") + " \"" + signature + "\"").c_str());
+	}
+	chdir(cwd);
+	if (confirm)
+		system(mail.c_str());
+	return;
 }
 
 template <typename T>
@@ -129,7 +144,9 @@ public:
 	void requestMembership(string club)
 	{
 		ofstream fout("request_transactions.txt", ios::app);
-		fout << rollNo << " REQUEST_MEMBERSHIP " << currentDateTime() << " " << club << endl;
+		string signature = rollNo + " REQUEST_MEMBERSHIP " + currentDateTime() + " " + club;
+		fout << signature << endl;
+		th.push_back(thread(broadcast, (string) "", signature, 0));
 		fout.close();
 	}
 } stu;
@@ -531,14 +548,18 @@ public:
 	void requestItem(int item)
 	{
 		ofstream fout("request_transactions.txt", ios::app);
-		fout << rollNo << " REQUEST_ITEM " << currentDateTime() << " " << item << endl;
+		string signature = rollNo + " REQUEST_ITEM " + currentDateTime() + " " + to_string(item);
+		fout << signature << endl;
 		fout.close();
+		th.push_back(thread(broadcast, (string) "", signature, 0));
 	}
 	void requestItemReturn(int item)
 	{
 		ofstream fout("request_transactions.txt", ios::app);
-		fout << rollNo << " REQUEST_ITEM_RETURN " << currentDateTime() << " " << item << endl;
+		string signature = rollNo + " REQUEST_ITEM_RETURN " + currentDateTime() + " " + to_string(item);
+		fout << signature << endl;
 		fout.close();
+		th.push_back(thread(broadcast, (string) "", signature, 0));
 	}
 } clubMember;
 
@@ -571,6 +592,7 @@ label:
 		header();
 		align_middle("NO NEW REQUESTS");
 		cout << endl;
+		f(i, 0, th.size()) if (th[i].joinable()) th[i].join();
 		align_middle("ENTER 0 TO GO BACK: ");
 		cin >> response;
 		return;
@@ -603,6 +625,11 @@ label:
 		cap.sign(t);
 		confirm_ts.push_back(t.signature());
 		c.input(c.clubName);
+		align_middle("WAITING FOR THREADS TO RESOLVE ");
+		fflush(stdout);
+		th.push_back(thread(broadcast, "python broadcast.py " + t.student.ldap + "@iitj.ac.in " + t.request + " " + (t.itemID ? t.item.name : t.clubName), t.signature(), 1));
+		if (th[th.size() - 1].joinable())
+			th[th.size() - 1].join();
 		goto label;
 	case '2':
 		goto label;
@@ -622,6 +649,8 @@ label:
 	clear();
 	header();
 	align_middle("NO NEW REQUESTS");
+	cout << endl;
+	f(i, 0, th.size()) if (th[i].joinable()) th[i].join();
 	cout << endl;
 	align_middle("ENTER 0 TO GO BACK: ");
 	cin >> response;
@@ -905,13 +934,17 @@ void incoming_transaction(const char *signature, bool confirm = 0)
 		stringstream s(signature);
 		transaction confirmed;
 		confirmed.load(s);
-		confirmed.display();
 		if (confirmed.valid())
 		{
 			Captain().sign(confirmed);
-			ofstream fout("confirm_transactions.txt", ios::app);
-			fout << signature << endl;
-			fout.close();
+			transaction_fin.open("request_transactions.txt");
+			transaction t;
+			vector<string> skipped_ts;
+			while (t.load() == 0)
+				if (t.valid())
+					skipped_ts.push_back(t.signature());
+			transaction_fin.close();
+			write({signature}, skipped_ts);
 		}
 	}
 	else
@@ -924,6 +957,7 @@ void incoming_transaction(const char *signature, bool confirm = 0)
 
 int main(int argc, char **argv)
 {
+	getcwd(cwd, sizeof(cwd));
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	if (argc == 3)
 		incoming_transaction(argv[2], strcmp(argv[1], "-c") == 0);

@@ -1,29 +1,22 @@
 35
 Carrer Planning Club
 B18CSE026
-3
-B18CSE042
-B18CSE038
-B18CSE026
+0
 Communication Club
 B18CSE026
-1
-B18CSE026
+0
 Entrepreneurship Club
 B18CSE026
-1
-B18CSE026
+0
 Personality Development Cell
 B18CSE026
-1
-B18CSE026
+0
 Dining Services Club
 B18CSE026
 0
 Informal Events Club
 B18CSE026
-1
-B18CSE026
+0
 Social Service Club
 B18CSE026
 0
@@ -35,9 +28,7 @@ B18CSE026
 0
 Drama Club
 B18CSE026
-2
-B18CSE042
-B18CSE038
+0
 Film Club
 B18CSE026
 0
@@ -91,9 +82,7 @@ B18CSE026
 0
 Badminton
 B18CSE026
-2
-B18CSE042
-B18CSE038
+0
 Basketball
 B18CSE026
 0
